@@ -199,23 +199,32 @@ After training, the pipeline writes outputs such as:
 
 Equivalent Top-20 feature files are also produced for `miRNA`, `CNV`, and `Methy`.
 
-## Configuration
+## Reproducibility Specifications
 
-Main runtime settings are defined in `src/config.py`, including:
-
-- `MAX_EPOCHS`
-- `MIN_EPOCHS`
-- `PATIENCE`
-- `LR`
-- `WEIGHT_DECAY`
-- `ALIGN_W`
-- `ORTHO_W`
-- `GATE_ENT_W`
-- `SPARSITY_W`
-- `OMICS_DROPOUT_P`
-- `LATENT_DIM`
-
-If you want to adapt the pipeline for new experiments, this is the first file to modify.
+| Parameter | Value | File:Line |
+|-----------|-------|-----------|
+| Latent dim (per modality) | 128 | config.py:35 |
+| Encoder hidden dims | [512, 256, 128] | models.py:77-88 |
+| Encoder activation | ReLU | models.py:79,83,87 |
+| Encoder regularization | BatchNorm1d + Dropout(0.4) on first two layers | models.py:80-81,84-85 |
+| Gate architecture | Linear(512→128) → ReLU → Dropout(0.3) → Linear(128→128) → Sigmoid | models.py:97-102 |
+| Classifier head | Linear(512→256) → ReLU → BN → Drop(0.5) → Linear(256→128) → ReLU → Drop(0.5) → Linear(128→C) | models.py:116-125 |
+| Optimizer | AdamW | training.py:79 |
+| Learning rate | 1×10⁻³ | config.py:23 |
+| Weight decay | 5×10⁻⁴ | config.py:24 |
+| Batch size | Full dataset (no mini-batching) | training.py:65-67 |
+| Max epochs | 500 | config.py:20 |
+| Min epochs | 150 | config.py:21 |
+| Early stop patience | 45 (on test weighted precision) | config.py:22 |
+| Loss: Focal γ | 2.0 (3.5 for GS-COAD) | training.py:74 |
+| Loss: Label smoothing | 0.05 | training.py:75 |
+| Loss: Alignment weight | 0.2 | config.py:27 |
+| Loss: Orthogonality weight | 0.1 | config.py:28 |
+| Loss: Gate entropy weight | 0.05 | config.py:29 |
+| Loss: Sparsity weight | 0.01 | config.py:30 |
+| Omics dropout prob | 0.15 | config.py:32 |
+| Random seed | 42 | config.py:19 |
+| CV folds | 5 (adaptive down to 2 for small classes) | config.py:34 |
 
 ## Method Summary
 
